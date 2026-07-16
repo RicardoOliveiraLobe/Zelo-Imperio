@@ -6,11 +6,16 @@
 <title>Zelo Império | Controle de Pragas Urbanas</title>
 <style>
   :root {
-    --verde-escuro: #0b3d2e;
-    --verde: #16794e;
-    --azul-escuro: #0d2a4a;
-    --cinza-claro: #f4f6f5;
-    --cinza: #6b7280;
+    --azul-escuro: #0F4C81;
+    --azul-royal: #0056B3;
+    --azul-medio: #1D70B8;
+    --azul-claro: #A3C9E8;
+    --azul-claro2: #85B3D1;
+    --preto: #1A1A1A;
+    --cinza-escuro: #555555;
+    --cinza-claro: #CCCCCC;
+    --fundo: #FDFBF7;
+    --secao-fundo: #EAF2FA;
     --branco: #ffffff;
   }
 
@@ -22,8 +27,8 @@
 
   body {
     font-family: "Segoe UI", Arial, Helvetica, sans-serif;
-    color: #1f2937;
-    background-color: var(--branco);
+    color: var(--preto);
+    background-color: var(--fundo);
     line-height: 1.6;
   }
 
@@ -50,7 +55,7 @@
   }
 
   header .logo span {
-    color: #4ade80;
+    color: var(--azul-claro);
   }
 
   header nav a {
@@ -61,12 +66,12 @@
   }
 
   header nav a:hover {
-    color: #4ade80;
+    color: var(--azul-claro);
   }
 
   /* ===== HERO ===== */
   .hero {
-    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--verde-escuro) 100%);
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul-royal) 100%);
     color: var(--branco);
     text-align: center;
     padding: 5rem 1.5rem;
@@ -82,12 +87,12 @@
     font-size: 1.15rem;
     max-width: 640px;
     margin: 0 auto 2rem auto;
-    color: #dbe7e1;
+    color: var(--azul-claro);
   }
 
   .btn-cta {
     display: inline-block;
-    background-color: var(--verde);
+    background-color: var(--azul-medio);
     color: var(--branco);
     padding: 0.9rem 2.2rem;
     border-radius: 6px;
@@ -99,14 +104,14 @@
   }
 
   .btn-cta:hover {
-    background-color: #12603d;
+    background-color: var(--azul-royal);
     transform: translateY(-2px);
   }
 
   /* ===== SERVIÇOS ===== */
   .servicos {
     padding: 4rem 1.5rem;
-    background-color: var(--cinza-claro);
+    background-color: var(--secao-fundo);
   }
 
   .servicos h2 {
@@ -118,7 +123,7 @@
 
   .servicos > p {
     text-align: center;
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     max-width: 600px;
     margin: 0 auto 3rem auto;
   }
@@ -151,20 +156,20 @@
   }
 
   .servico-card h3 {
-    color: var(--verde-escuro);
+    color: var(--azul-escuro);
     margin-bottom: 0.6rem;
     font-size: 1.2rem;
   }
 
   .servico-card p {
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     font-size: 0.95rem;
   }
 
   /* ===== ORÇAMENTO / FORMULÁRIO ===== */
   .orcamento {
     padding: 4rem 1.5rem;
-    background-color: var(--branco);
+    background-color: var(--fundo);
   }
 
   .orcamento h2 {
@@ -176,7 +181,7 @@
 
   .orcamento > p {
     text-align: center;
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     max-width: 600px;
     margin: 0 auto 2.5rem auto;
   }
@@ -184,7 +189,7 @@
   .form-container {
     max-width: 520px;
     margin: 0 auto;
-    background-color: var(--cinza-claro);
+    background-color: var(--secao-fundo);
     padding: 2.5rem;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -218,7 +223,7 @@
     display: block;
     margin-bottom: 0.4rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--preto);
     font-size: 0.92rem;
   }
 
@@ -226,7 +231,7 @@
   .form-group select {
     width: 100%;
     padding: 0.75rem 0.9rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--cinza-claro);
     border-radius: 6px;
     font-size: 0.95rem;
     background-color: var(--branco);
@@ -235,7 +240,7 @@
   .form-group input:focus,
   .form-group select:focus {
     outline: none;
-    border-color: var(--verde);
+    border-color: var(--azul-medio);
   }
 
   .form-container .btn-cta {
@@ -246,7 +251,7 @@
   /* ===== FOOTER ===== */
   footer {
     background-color: var(--azul-escuro);
-    color: #cbd5e1;
+    color: var(--azul-claro);
     text-align: center;
     padding: 2rem 1.5rem;
     font-size: 0.9rem;
@@ -262,7 +267,7 @@
   }
 
   footer .copyright {
-    color: #94a3b8;
+    color: var(--cinza-claro);
     margin-top: 0.5rem;
   }
 

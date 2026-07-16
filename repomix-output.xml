@@ -41,67 +41,6 @@ The content is organized as follows:
 
 <directory_structure>
 templates/
-  .git/
-    hooks/
-      applypatch-msg.sample
-      commit-msg.sample
-      fsmonitor-watchman.sample
-      post-update.sample
-      pre-applypatch.sample
-      pre-commit.sample
-      pre-merge-commit.sample
-      pre-push.sample
-      pre-rebase.sample
-      pre-receive.sample
-      prepare-commit-msg.sample
-      push-to-checkout.sample
-      sendemail-validate.sample
-      update.sample
-    info/
-      exclude
-    logs/
-      refs/
-        heads/
-          main
-        remotes/
-          origin/
-            main
-      HEAD
-    objects/
-      16/
-        5fbf8763c1b22d86c4cd40ab299f10de44c047
-      57/
-        eeb7fa8418d6fc1c66a46508c3c55879d0916b
-      77/
-        ac75498fba8af48ba35bda27fca8ff915cdff3
-      84/
-        aaa7aee425e46a047099f9fc726b31b744fd5d
-      a3/
-        99378b17861b1db00b8b29e379f5137472b765
-      b9/
-        7b9b7d162f36248ee34b9f0146e4ddafb409cc
-      c3/
-        7b670ab3f69f5d0b7d7efef211689c9b97d9f9
-      d4/
-        846c99e21a12b50a6c4227a471eab6a5b92cfa
-      df/
-        706f2213e57a71d0039751fda75c9744fc63aa
-        b86a780c542061118f1f9eadee63ba9d49e231
-      e5/
-        077a856c9f75463a94c60b71f3b2c726255980
-      f0/
-        c1a85708c98c7f30313cd67a2337ef133bbf51
-    refs/
-      heads/
-        main
-      remotes/
-        origin/
-          main
-    COMMIT_EDITMSG
-    config
-    description
-    HEAD
-    index
   index.html
 .gitignore
 app.py
@@ -114,974 +53,167 @@ requirements.txt
 <files>
 This section contains the contents of the repository's files.
 
-<file path="templates/.git/hooks/applypatch-msg.sample">
-#!/bin/sh
-#
-# An example hook script to check the commit log message taken by
-# applypatch from an e-mail message.
-#
-# The hook should exit with non-zero status after issuing an
-# appropriate message if it wants to stop the commit.  The hook is
-# allowed to edit the commit message file.
-#
-# To enable this hook, rename this file to "applypatch-msg".
-
-. git-sh-setup
-commitmsg="$(git rev-parse --git-path hooks/commit-msg)"
-test -x "$commitmsg" && exec "$commitmsg" ${1+"$@"}
-:
+<file path=".gitignore">
+.venv/
+__pycache__/
+*.pyc
 </file>
 
-<file path="templates/.git/hooks/commit-msg.sample">
-#!/bin/sh
-#
-# An example hook script to check the commit log message.
-# Called by "git commit" with one argument, the name of the file
-# that has the commit message.  The hook should exit with non-zero
-# status after issuing an appropriate message if it wants to stop the
-# commit.  The hook is allowed to edit the commit message file.
-#
-# To enable this hook, rename this file to "commit-msg".
+<file path="app.py">
+from flask import Flask, render_template, request, redirect, url_for, flash
 
-# Uncomment the below to add a Signed-off-by line to the message.
-# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
-# hook is more suited to it.
-#
-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+app = Flask(__name__)
+app.secret_key = "dev-secret-key-troque-em-producao"
 
-# This example catches duplicate Signed-off-by lines.
+PRAGAS_VALIDAS = {"Baratas", "Formigas", "Ratos", "Cupins", "Escorpioes"}
+TIPOS_IMOVEL_VALIDOS = {"Residencial", "Comercial"}
 
-test "" = "$(grep '^Signed-off-by: ' "$1" |
-	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
-	echo >&2 Duplicate Signed-off-by lines.
-	exit 1
-}
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+
+@app.route("/orcamento", methods=["POST"])
+def orcamento():
+    nome = request.form.get("nome", "").strip()
+    whatsapp = request.form.get("whatsapp", "").strip()
+    tipo_imovel = request.form.get("tipo_imovel", "").strip()
+    praga_alvo = request.form.get("praga_alvo", "").strip()
+
+    if not nome or not whatsapp or tipo_imovel not in TIPOS_IMOVEL_VALIDOS or praga_alvo not in PRAGAS_VALIDAS:
+        flash("Por favor, preencha todos os campos corretamente.", "erro")
+        return redirect(url_for("home") + "#orcamento")
+
+    # Simulação de salvamento — aqui entraria a gravação em banco de dados
+    # ou envio para um CRM/planilha em uma versão futura.
+    print("=== NOVO PEDIDO DE ORÇAMENTO ===")
+    print(f"Nome: {nome}")
+    print(f"WhatsApp: {whatsapp}")
+    print(f"Tipo de Imóvel: {tipo_imovel}")
+    print(f"Praga Alvo: {praga_alvo}")
+    print("================================")
+
+    flash(f"Obrigado, {nome}! Recebemos sua solicitação e entraremos em contato em breve pelo WhatsApp.", "sucesso")
+    return redirect(url_for("home") + "#orcamento")
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 </file>
 
-<file path="templates/.git/hooks/fsmonitor-watchman.sample">
-#!/usr/bin/perl
+<file path="proposta_comercial_pme_controle_pragas.md">
+# PROPOSTA COMERCIAL
+## Controle Integrado de Pragas Urbanas — Contrato de Manutenção Preventiva
 
-use strict;
-use warnings;
-use IPC::Open2;
+---
 
-# An example hook script to integrate Watchman
-# (https://facebook.github.io/watchman/) with git to speed up detecting
-# new and modified files.
-#
-# The hook is passed a version (currently 2) and last update token
-# formatted as a string and outputs to stdout a new update token and
-# all files that have been modified since the update token. Paths must
-# be relative to the root of the working tree and separated by a single NUL.
-#
-# To enable this hook, rename this file to "query-watchman" and set
-# 'git config core.fsmonitor .git/hooks/query-watchman'
-#
-my ($version, $last_update_token) = @ARGV;
+**[LOGO DA EMPRESA]**
 
-# Uncomment for debugging
-# print STDERR "$0 $version $last_update_token\n";
+**[NOME DA EMPRESA]**
+CNPJ: [00.000.000/0000-00] | Licença de Funcionamento: [nº] | Registro no órgão sanitário: [nº]
+[Endereço completo] | [Telefone] | [E-mail] | [Site/Instagram]
 
-# Check the hook interface version
-if ($version ne 2) {
-	die "Unsupported query-fsmonitor hook version '$version'.\n" .
-	    "Falling back to scanning...\n";
-}
+---
 
-my $git_work_tree = get_working_dir();
+**Proposta nº:** [000/2026]
+**Data:** [DD/MM/AAAA]
+**Validade da proposta:** 10 dias corridos
 
-my $retry = 1;
+**Cliente:** [Razão Social do Cliente]
+**CNPJ:** [00.000.000/0000-00]
+**Segmento:** [Restaurante / Indústria / Condomínio / Clínica / Comércio varejista / Outro]
+**Endereço do imóvel a ser atendido:** [Endereço completo]
+**Contato responsável:** [Nome, cargo, telefone, e-mail]
 
-my $json_pkg;
-eval {
-	require JSON::XS;
-	$json_pkg = "JSON::XS";
-	1;
-} or do {
-	require JSON::PP;
-	$json_pkg = "JSON::PP";
-};
+---
 
-launch_watchman();
+## 1. Apresentação
 
-sub launch_watchman {
-	my $o = watchman_query();
-	if (is_work_tree_watched($o)) {
-		output_result($o->{clock}, @{$o->{files}});
-	}
-}
+A **[Nome da Empresa]** é especializada em Manejo Integrado de Pragas (MIP) urbanas, atuando em conformidade com a **RDC nº 52/2009 da ANVISA**, que regulamenta as empresas prestadoras de serviço de controle de vetores e pragas urbanas. Nossa equipe é tecnicamente capacitada e utiliza exclusivamente produtos com registro no Ministério da Saúde/ANVISA, aplicados por técnicos treinados e com Anotação de Responsabilidade Técnica (ART/RT) vigente.
 
-sub output_result {
-	my ($clockid, @files) = @_;
+Diferente de uma simples "dedetização pontual", nosso trabalho segue a lógica do **Manejo Integrado de Pragas**: identificamos a espécie, mapeamos os pontos críticos de infestação (fontes de água, alimento, abrigo e acesso), e combinamos métodos químicos, físicos e comportamentais para reduzir a pressão de pragas de forma sustentável — não apenas eliminar o sintoma visível.
 
-	# Uncomment for debugging watchman output
-	# open (my $fh, ">", ".git/watchman-output.out");
-	# binmode $fh, ":utf8";
-	# print $fh "$clockid\n@files\n";
-	# close $fh;
+## 2. Diagnóstico e Escopo do Serviço
 
-	binmode STDOUT, ":utf8";
-	print $clockid;
-	print "\0";
-	local $, = "\0";
-	print @files;
-}
+Com base na vistoria técnica realizada em [data da vistoria], identificamos os seguintes pontos de atenção no imóvel:
 
-sub watchman_clock {
-	my $response = qx/watchman clock "$git_work_tree"/;
-	die "Failed to get clock id on '$git_work_tree'.\n" .
-		"Falling back to scanning...\n" if $? != 0;
+| Praga-alvo identificada/prevenida | Nível de risco | Método de controle indicado |
+|---|---|---|
+| Baratas (Blattodea) | [Baixo/Médio/Alto] | Gel iscas + polvilhamento em frestas |
+| Roedores (ratos/camundongos) | [Baixo/Médio/Alto] | Estações porta-iscas + bloqueio de acesso |
+| Formigas urbanas | [Baixo/Médio/Alto] | Iscas granuladas/gel + identificação de trilhas |
+| Cupins (subterrâneos/madeira seca) | [Baixo/Médio/Alto] | Barreira química/física + monitoramento |
+| Escorpiões | [Baixo/Médio/Alto] | Vedação de frestas + controle de baratas (presa) |
+| Mosquitos (Aedes e outros) | [Baixo/Médio/Alto] | Eliminação de criadouros + nebulização (UBV) |
+| Pombos e outras aves urbanas | [Baixo/Médio/Alto] | Instalação de dispositivos de afugentamento |
+| Percevejos de cama | [Baixo/Médio/Alto] | Tratamento térmico/químico direcionado |
 
-	return $json_pkg->new->utf8->decode($response);
-}
+*Ajustar a tabela conforme o levantamento real de cada cliente — remover linhas não aplicáveis.*
 
-sub watchman_query {
-	my $pid = open2(\*CHLD_OUT, \*CHLD_IN, 'watchman -j --no-pretty')
-	or die "open2() failed: $!\n" .
-	"Falling back to scanning...\n";
+## 3. Plano de Manutenção Proposto — Visitas Periódicas Fixas
 
-	# In the query expression below we're asking for names of files that
-	# changed since $last_update_token but not from the .git folder.
-	#
-	# To accomplish this, we're using the "since" generator to use the
-	# recency index to select candidate nodes and "fields" to limit the
-	# output to file names only. Then we're using the "expression" term to
-	# further constrain the results.
-	my $last_update_line = "";
-	if (substr($last_update_token, 0, 1) eq "c") {
-		$last_update_token = "\"$last_update_token\"";
-		$last_update_line = qq[\n"since": $last_update_token,];
-	}
-	my $query = <<"	END";
-		["query", "$git_work_tree", {$last_update_line
-			"fields": ["name"],
-			"expression": ["not", ["dirname", ".git"]]
-		}]
-	END
+| Item | Descrição |
+|---|---|
+| **Frequência das visitas** | [Mensal / Bimestral / Trimestral] |
+| **Duração média por visita** | [X] horas |
+| **Escopo por visita** | Inspeção técnica + reaplicação/reposição de iscas e monitoramento + relatório técnico |
+| **Áreas cobertas** | [Áreas internas, áreas externas, área técnica/cozinha industrial, depósito, etc.] |
+| **Atendimento corretivo emergencial** | [Incluído sem custo adicional / Sob consulta, com prazo de resposta de até X horas] |
+| **Relatório técnico pós-visita** | Emitido a cada atendimento, com registro fotográfico, produtos utilizados e recomendações |
+| **Certificado de Dedetização/Desratização** | Emitido conforme exigência de vigilância sanitária, válido para fiscalizações |
 
-	# Uncomment for debugging the watchman query
-	# open (my $fh, ">", ".git/watchman-query.json");
-	# print $fh $query;
-	# close $fh;
+## 4. Segurança e Conformidade
 
-	print CHLD_IN $query;
-	close CHLD_IN;
-	my $response = do {local $/; <CHLD_OUT>};
+Todos os produtos utilizados possuem **registro no Ministério da Saúde/ANVISA** para uso em ambiente urbano, aplicados conforme a bula e o receituário técnico. Como parte do protocolo de segurança, orientamos e formalizamos por escrito:
 
-	# Uncomment for debugging the watch response
-	# open ($fh, ">", ".git/watchman-response.json");
-	# print $fh $response;
-	# close $fh;
+- **Afastamento de pessoas, animais domésticos e alimentos** da área tratada durante a aplicação;
+- **Tempo de reentrada** recomendado após cada aplicação: [X horas], conforme classe toxicológica do produto utilizado;
+- Uso de **Equipamentos de Proteção Individual (EPI)** completos pela equipe técnica;
+- Sinalização temporária da área tratada durante e após o serviço;
+- Ficha de Informação de Segurança de Produto Químico (FISPQ) disponível mediante solicitação.
 
-	die "Watchman: command returned no output.\n" .
-	"Falling back to scanning...\n" if $response eq "";
-	die "Watchman: command returned invalid output: $response\n" .
-	"Falling back to scanning...\n" unless $response =~ /^\{/;
+## 5. Investimento
 
-	return $json_pkg->new->utf8->decode($response);
-}
+| Item | Valor |
+|---|---|
+| Visita técnica inicial (diagnóstico + primeira aplicação) | R$ [valor] |
+| Mensalidade — plano de manutenção ([frequência]) | R$ [valor]/mês |
+| Fidelidade do contrato | [X meses] |
+| Forma de pagamento | [Boleto / PIX / Cartão — vencimento todo dia X] |
+| Reajuste anual | [Índice — ex: IPCA, na data de aniversário do contrato] |
 
-sub is_work_tree_watched {
-	my ($output) = @_;
-	my $error = $output->{error};
-	if ($retry > 0 and $error and $error =~ m/unable to resolve root .* directory (.*) is not watched/) {
-		$retry--;
-		my $response = qx/watchman watch "$git_work_tree"/;
-		die "Failed to make watchman watch '$git_work_tree'.\n" .
-		    "Falling back to scanning...\n" if $? != 0;
-		$output = $json_pkg->new->utf8->decode($response);
-		$error = $output->{error};
-		die "Watchman: $error.\n" .
-		"Falling back to scanning...\n" if $error;
+*Observação: valor pode variar conforme metragem, tipo de segmento e nível de infestação identificado na vistoria.*
 
-		# Uncomment for debugging watchman output
-		# open (my $fh, ">", ".git/watchman-output.out");
-		# close $fh;
+## 6. Por que manter um contrato recorrente (e não um serviço avulso)
 
-		# Watchman will always return all files on the first query so
-		# return the fast "everything is dirty" flag to git and do the
-		# Watchman query just to get it over with now so we won't pay
-		# the cost in git to look up each individual file.
-		my $o = watchman_clock();
-		$error = $output->{error};
+Um serviço avulso resolve o problema visível no momento — mas pragas urbanas têm ciclos reprodutivos contínuos (uma fêmea de barata, por exemplo, pode gerar centenas de descendentes em poucos meses). O contrato de manutenção garante:
 
-		die "Watchman: $error.\n" .
-		"Falling back to scanning...\n" if $error;
+- **Monitoramento contínuo** dos pontos críticos, interrompendo o ciclo reprodutivo antes que a infestação se reestabeleça;
+- **Conformidade permanente** com a vigilância sanitária, essencial para renovação de alvará e para inspeções de clientes/fornecedores (no caso de indústrias e restaurantes);
+- **Redução de custo no longo prazo**, evitando reinfestações que exigiriam tratamentos corretivos mais caros e invasivos;
+- **Registro histórico documentado**, útil em auditorias, certificações (ISO, HACCP) e devidas diligências.
 
-		output_result($o->{clock}, ("/"));
-		$last_update_token = $o->{clock};
+## 7. Validade e Aceite
 
-		eval { launch_watchman() };
-		return 0;
-	}
+Esta proposta é válida por **10 dias corridos** a partir da data de emissão. O início dos serviços está condicionado à assinatura do contrato de prestação de serviços em anexo e ao agendamento da primeira visita técnica.
 
-	die "Watchman: $error.\n" .
-	"Falling back to scanning...\n" if $error;
+Ficamos à disposição para esclarecer dúvidas técnicas ou comerciais.
 
-	return 1;
-}
+**[Nome do responsável comercial]**
+[Cargo] — [Nome da Empresa]
+[Telefone] | [E-mail]
 
-sub get_working_dir {
-	my $working_dir;
-	if ($^O =~ 'msys' || $^O =~ 'cygwin') {
-		$working_dir = Win32::GetCwd();
-		$working_dir =~ tr/\\/\//;
-	} else {
-		require Cwd;
-		$working_dir = Cwd::cwd();
-	}
+De acordo,
 
-	return $working_dir;
-}
+_____________________________________
+[Nome do Cliente / Responsável Legal]
+[Cargo] — [Razão Social]
+Data: ____/____/______
 </file>
 
-<file path="templates/.git/hooks/post-update.sample">
-#!/bin/sh
-#
-# An example hook script to prepare a packed repository for use over
-# dumb transports.
-#
-# To enable this hook, rename this file to "post-update".
-
-exec git update-server-info
-</file>
-
-<file path="templates/.git/hooks/pre-applypatch.sample">
-#!/bin/sh
-#
-# An example hook script to verify what is about to be committed
-# by applypatch from an e-mail message.
-#
-# The hook should exit with non-zero status after issuing an
-# appropriate message if it wants to stop the commit.
-#
-# To enable this hook, rename this file to "pre-applypatch".
-
-. git-sh-setup
-precommit="$(git rev-parse --git-path hooks/pre-commit)"
-test -x "$precommit" && exec "$precommit" ${1+"$@"}
-:
-</file>
-
-<file path="templates/.git/hooks/pre-commit.sample">
-#!/bin/sh
-#
-# An example hook script to verify what is about to be committed.
-# Called by "git commit" with no arguments.  The hook should
-# exit with non-zero status after issuing an appropriate message if
-# it wants to stop the commit.
-#
-# To enable this hook, rename this file to "pre-commit".
-
-if git rev-parse --verify HEAD >/dev/null 2>&1
-then
-	against=HEAD
-else
-	# Initial commit: diff against an empty tree object
-	against=$(git hash-object -t tree /dev/null)
-fi
-
-# If you want to allow non-ASCII filenames set this variable to true.
-allownonascii=$(git config --type=bool hooks.allownonascii)
-
-# Redirect output to stderr.
-exec 1>&2
-
-# Cross platform projects tend to avoid non-ASCII filenames; prevent
-# them from being added to the repository. We exploit the fact that the
-# printable range starts at the space character and ends with tilde.
-if [ "$allownonascii" != "true" ] &&
-	# Note that the use of brackets around a tr range is ok here, (it's
-	# even required, for portability to Solaris 10's /usr/bin/tr), since
-	# the square bracket bytes happen to fall in the designated range.
-	test $(git diff-index --cached --name-only --diff-filter=A -z $against |
-	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
-then
-	cat <<\EOF
-Error: Attempt to add a non-ASCII file name.
-
-This can cause problems if you want to work with people on other platforms.
-
-To be portable it is advisable to rename the file.
-
-If you know what you are doing you can disable this check using:
-
-  git config hooks.allownonascii true
-EOF
-	exit 1
-fi
-
-# If there are whitespace errors, print the offending file names and fail.
-exec git diff-index --check --cached $against --
-</file>
-
-<file path="templates/.git/hooks/pre-merge-commit.sample">
-#!/bin/sh
-#
-# An example hook script to verify what is about to be committed.
-# Called by "git merge" with no arguments.  The hook should
-# exit with non-zero status after issuing an appropriate message to
-# stderr if it wants to stop the merge commit.
-#
-# To enable this hook, rename this file to "pre-merge-commit".
-
-. git-sh-setup
-test -x "$GIT_DIR/hooks/pre-commit" &&
-        exec "$GIT_DIR/hooks/pre-commit"
-:
-</file>
-
-<file path="templates/.git/hooks/pre-push.sample">
-#!/bin/sh
-
-# An example hook script to verify what is about to be pushed.  Called by "git
-# push" after it has checked the remote status, but before anything has been
-# pushed.  If this script exits with a non-zero status nothing will be pushed.
-#
-# This hook is called with the following parameters:
-#
-# $1 -- Name of the remote to which the push is being done
-# $2 -- URL to which the push is being done
-#
-# If pushing without using a named remote those arguments will be equal.
-#
-# Information about the commits which are being pushed is supplied as lines to
-# the standard input in the form:
-#
-#   <local ref> <local oid> <remote ref> <remote oid>
-#
-# This sample shows how to prevent push of commits where the log message starts
-# with "WIP" (work in progress).
-
-remote="$1"
-url="$2"
-
-zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
-
-while read local_ref local_oid remote_ref remote_oid
-do
-	if test "$local_oid" = "$zero"
-	then
-		# Handle delete
-		:
-	else
-		if test "$remote_oid" = "$zero"
-		then
-			# New branch, examine all commits
-			range="$local_oid"
-		else
-			# Update to existing branch, examine new commits
-			range="$remote_oid..$local_oid"
-		fi
-
-		# Check for WIP commit
-		commit=$(git rev-list -n 1 --grep '^WIP' "$range")
-		if test -n "$commit"
-		then
-			echo >&2 "Found WIP commit in $local_ref, not pushing"
-			exit 1
-		fi
-	fi
-done
-
-exit 0
-</file>
-
-<file path="templates/.git/hooks/pre-rebase.sample">
-#!/bin/sh
-#
-# Copyright (c) 2006, 2008 Junio C Hamano
-#
-# The "pre-rebase" hook is run just before "git rebase" starts doing
-# its job, and can prevent the command from running by exiting with
-# non-zero status.
-#
-# The hook is called with the following parameters:
-#
-# $1 -- the upstream the series was forked from.
-# $2 -- the branch being rebased (or empty when rebasing the current branch).
-#
-# This sample shows how to prevent topic branches that are already
-# merged to 'next' branch from getting rebased, because allowing it
-# would result in rebasing already published history.
-
-publish=next
-basebranch="$1"
-if test "$#" = 2
-then
-	topic="refs/heads/$2"
-else
-	topic=`git symbolic-ref HEAD` ||
-	exit 0 ;# we do not interrupt rebasing detached HEAD
-fi
-
-case "$topic" in
-refs/heads/??/*)
-	;;
-*)
-	exit 0 ;# we do not interrupt others.
-	;;
-esac
-
-# Now we are dealing with a topic branch being rebased
-# on top of master.  Is it OK to rebase it?
-
-# Does the topic really exist?
-git show-ref -q "$topic" || {
-	echo >&2 "No such branch $topic"
-	exit 1
-}
-
-# Is topic fully merged to master?
-not_in_master=`git rev-list --pretty=oneline ^master "$topic"`
-if test -z "$not_in_master"
-then
-	echo >&2 "$topic is fully merged to master; better remove it."
-	exit 1 ;# we could allow it, but there is no point.
-fi
-
-# Is topic ever merged to next?  If so you should not be rebasing it.
-only_next_1=`git rev-list ^master "^$topic" ${publish} | sort`
-only_next_2=`git rev-list ^master           ${publish} | sort`
-if test "$only_next_1" = "$only_next_2"
-then
-	not_in_topic=`git rev-list "^$topic" master`
-	if test -z "$not_in_topic"
-	then
-		echo >&2 "$topic is already up to date with master"
-		exit 1 ;# we could allow it, but there is no point.
-	else
-		exit 0
-	fi
-else
-	not_in_next=`git rev-list --pretty=oneline ^${publish} "$topic"`
-	/usr/bin/perl -e '
-		my $topic = $ARGV[0];
-		my $msg = "* $topic has commits already merged to public branch:\n";
-		my (%not_in_next) = map {
-			/^([0-9a-f]+) /;
-			($1 => 1);
-		} split(/\n/, $ARGV[1]);
-		for my $elem (map {
-				/^([0-9a-f]+) (.*)$/;
-				[$1 => $2];
-			} split(/\n/, $ARGV[2])) {
-			if (!exists $not_in_next{$elem->[0]}) {
-				if ($msg) {
-					print STDERR $msg;
-					undef $msg;
-				}
-				print STDERR " $elem->[1]\n";
-			}
-		}
-	' "$topic" "$not_in_next" "$not_in_master"
-	exit 1
-fi
-
-<<\DOC_END
-
-This sample hook safeguards topic branches that have been
-published from being rewound.
-
-The workflow assumed here is:
-
- * Once a topic branch forks from "master", "master" is never
-   merged into it again (either directly or indirectly).
-
- * Once a topic branch is fully cooked and merged into "master",
-   it is deleted.  If you need to build on top of it to correct
-   earlier mistakes, a new topic branch is created by forking at
-   the tip of the "master".  This is not strictly necessary, but
-   it makes it easier to keep your history simple.
-
- * Whenever you need to test or publish your changes to topic
-   branches, merge them into "next" branch.
-
-The script, being an example, hardcodes the publish branch name
-to be "next", but it is trivial to make it configurable via
-$GIT_DIR/config mechanism.
-
-With this workflow, you would want to know:
-
-(1) ... if a topic branch has ever been merged to "next".  Young
-    topic branches can have stupid mistakes you would rather
-    clean up before publishing, and things that have not been
-    merged into other branches can be easily rebased without
-    affecting other people.  But once it is published, you would
-    not want to rewind it.
-
-(2) ... if a topic branch has been fully merged to "master".
-    Then you can delete it.  More importantly, you should not
-    build on top of it -- other people may already want to
-    change things related to the topic as patches against your
-    "master", so if you need further changes, it is better to
-    fork the topic (perhaps with the same name) afresh from the
-    tip of "master".
-
-Let's look at this example:
-
-		   o---o---o---o---o---o---o---o---o---o "next"
-		  /       /           /           /
-		 /   a---a---b A     /           /
-		/   /               /           /
-	       /   /   c---c---c---c B         /
-	      /   /   /             \         /
-	     /   /   /   b---b C     \       /
-	    /   /   /   /             \     /
-    ---o---o---o---o---o---o---o---o---o---o---o "master"
-
-
-A, B and C are topic branches.
-
- * A has one fix since it was merged up to "next".
-
- * B has finished.  It has been fully merged up to "master" and "next",
-   and is ready to be deleted.
-
- * C has not merged to "next" at all.
-
-We would want to allow C to be rebased, refuse A, and encourage
-B to be deleted.
-
-To compute (1):
-
-	git rev-list ^master ^topic next
-	git rev-list ^master        next
-
-	if these match, topic has not merged in next at all.
-
-To compute (2):
-
-	git rev-list master..topic
-
-	if this is empty, it is fully merged to "master".
-
-DOC_END
-</file>
-
-<file path="templates/.git/hooks/pre-receive.sample">
-#!/bin/sh
-#
-# An example hook script to make use of push options.
-# The example simply echoes all push options that start with 'echoback='
-# and rejects all pushes when the "reject" push option is used.
-#
-# To enable this hook, rename this file to "pre-receive".
-
-if test -n "$GIT_PUSH_OPTION_COUNT"
-then
-	i=0
-	while test "$i" -lt "$GIT_PUSH_OPTION_COUNT"
-	do
-		eval "value=\$GIT_PUSH_OPTION_$i"
-		case "$value" in
-		echoback=*)
-			echo "echo from the pre-receive-hook: ${value#*=}" >&2
-			;;
-		reject)
-			exit 1
-		esac
-		i=$((i + 1))
-	done
-fi
-</file>
-
-<file path="templates/.git/hooks/prepare-commit-msg.sample">
-#!/bin/sh
-#
-# An example hook script to prepare the commit log message.
-# Called by "git commit" with the name of the file that has the
-# commit message, followed by the description of the commit
-# message's source.  The hook's purpose is to edit the commit
-# message file.  If the hook fails with a non-zero status,
-# the commit is aborted.
-#
-# To enable this hook, rename this file to "prepare-commit-msg".
-
-# This hook includes three examples. The first one removes the
-# "# Please enter the commit message..." help message.
-#
-# The second includes the output of "git diff --name-status -r"
-# into the message, just before the "git status" output.  It is
-# commented because it doesn't cope with --amend or with squashed
-# commits.
-#
-# The third example adds a Signed-off-by line to the message, that can
-# still be edited.  This is rarely a good idea.
-
-COMMIT_MSG_FILE=$1
-COMMIT_SOURCE=$2
-SHA1=$3
-
-/usr/bin/perl -i.bak -ne 'print unless(m/^. Please enter the commit message/..m/^#$/)' "$COMMIT_MSG_FILE"
-
-# case "$COMMIT_SOURCE,$SHA1" in
-#  ,|template,)
-#    /usr/bin/perl -i.bak -pe '
-#       print "\n" . `git diff --cached --name-status -r`
-# 	 if /^#/ && $first++ == 0' "$COMMIT_MSG_FILE" ;;
-#  *) ;;
-# esac
-
-# SOB=$(git var GIT_COMMITTER_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
-# git interpret-trailers --in-place --trailer "$SOB" "$COMMIT_MSG_FILE"
-# if test -z "$COMMIT_SOURCE"
-# then
-#   /usr/bin/perl -i.bak -pe 'print "\n" if !$first_line++' "$COMMIT_MSG_FILE"
-# fi
-</file>
-
-<file path="templates/.git/hooks/push-to-checkout.sample">
-#!/bin/sh
-
-# An example hook script to update a checked-out tree on a git push.
-#
-# This hook is invoked by git-receive-pack(1) when it reacts to git
-# push and updates reference(s) in its repository, and when the push
-# tries to update the branch that is currently checked out and the
-# receive.denyCurrentBranch configuration variable is set to
-# updateInstead.
-#
-# By default, such a push is refused if the working tree and the index
-# of the remote repository has any difference from the currently
-# checked out commit; when both the working tree and the index match
-# the current commit, they are updated to match the newly pushed tip
-# of the branch. This hook is to be used to override the default
-# behaviour; however the code below reimplements the default behaviour
-# as a starting point for convenient modification.
-#
-# The hook receives the commit with which the tip of the current
-# branch is going to be updated:
-commit=$1
-
-# It can exit with a non-zero status to refuse the push (when it does
-# so, it must not modify the index or the working tree).
-die () {
-	echo >&2 "$*"
-	exit 1
-}
-
-# Or it can make any necessary changes to the working tree and to the
-# index to bring them to the desired state when the tip of the current
-# branch is updated to the new commit, and exit with a zero status.
-#
-# For example, the hook can simply run git read-tree -u -m HEAD "$1"
-# in order to emulate git fetch that is run in the reverse direction
-# with git push, as the two-tree form of git read-tree -u -m is
-# essentially the same as git switch or git checkout that switches
-# branches while keeping the local changes in the working tree that do
-# not interfere with the difference between the branches.
-
-# The below is a more-or-less exact translation to shell of the C code
-# for the default behaviour for git's push-to-checkout hook defined in
-# the push_to_deploy() function in builtin/receive-pack.c.
-#
-# Note that the hook will be executed from the repository directory,
-# not from the working tree, so if you want to perform operations on
-# the working tree, you will have to adapt your code accordingly, e.g.
-# by adding "cd .." or using relative paths.
-
-if ! git update-index -q --ignore-submodules --refresh
-then
-	die "Up-to-date check failed"
-fi
-
-if ! git diff-files --quiet --ignore-submodules --
-then
-	die "Working directory has unstaged changes"
-fi
-
-# This is a rough translation of:
-#
-#   head_has_history() ? "HEAD" : EMPTY_TREE_SHA1_HEX
-if git cat-file -e HEAD 2>/dev/null
-then
-	head=HEAD
-else
-	head=$(git hash-object -t tree --stdin </dev/null)
-fi
-
-if ! git diff-index --quiet --cached --ignore-submodules $head --
-then
-	die "Working directory has staged changes"
-fi
-
-if ! git read-tree -u -m "$commit"
-then
-	die "Could not update working tree to new HEAD"
-fi
-</file>
-
-<file path="templates/.git/hooks/sendemail-validate.sample">
-#!/bin/sh
-
-# An example hook script to validate a patch (and/or patch series) before
-# sending it via email.
-#
-# The hook should exit with non-zero status after issuing an appropriate
-# message if it wants to prevent the email(s) from being sent.
-#
-# To enable this hook, rename this file to "sendemail-validate".
-#
-# By default, it will only check that the patch(es) can be applied on top of
-# the default upstream branch without conflicts in a secondary worktree. After
-# validation (successful or not) of the last patch of a series, the worktree
-# will be deleted.
-#
-# The following config variables can be set to change the default remote and
-# remote ref that are used to apply the patches against:
-#
-#   sendemail.validateRemote (default: origin)
-#   sendemail.validateRemoteRef (default: HEAD)
-#
-# Replace the TODO placeholders with appropriate checks according to your
-# needs.
-
-validate_cover_letter () {
-	file="$1"
-	# TODO: Replace with appropriate checks (e.g. spell checking).
-	true
-}
-
-validate_patch () {
-	file="$1"
-	# Ensure that the patch applies without conflicts.
-	git am -3 "$file" || return
-	# TODO: Replace with appropriate checks for this patch
-	# (e.g. checkpatch.pl).
-	true
-}
-
-validate_series () {
-	# TODO: Replace with appropriate checks for the whole series
-	# (e.g. quick build, coding style checks, etc.).
-	true
-}
-
-# main -------------------------------------------------------------------------
-
-if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
-then
-	remote=$(git config --default origin --get sendemail.validateRemote) &&
-	ref=$(git config --default HEAD --get sendemail.validateRemoteRef) &&
-	worktree=$(mktemp --tmpdir -d sendemail-validate.XXXXXXX) &&
-	git worktree add -fd --checkout "$worktree" "refs/remotes/$remote/$ref" &&
-	git config --replace-all sendemail.validateWorktree "$worktree"
-else
-	worktree=$(git config --get sendemail.validateWorktree)
-fi || {
-	echo "sendemail-validate: error: failed to prepare worktree" >&2
-	exit 1
-}
-
-unset GIT_DIR GIT_WORK_TREE
-cd "$worktree" &&
-
-if grep -q "^diff --git " "$1"
-then
-	validate_patch "$1"
-else
-	validate_cover_letter "$1"
-fi &&
-
-if test "$GIT_SENDEMAIL_FILE_COUNTER" = "$GIT_SENDEMAIL_FILE_TOTAL"
-then
-	git config --unset-all sendemail.validateWorktree &&
-	trap 'git worktree remove -ff "$worktree"' EXIT &&
-	validate_series
-fi
-</file>
-
-<file path="templates/.git/hooks/update.sample">
-#!/bin/sh
-#
-# An example hook script to block unannotated tags from entering.
-# Called by "git receive-pack" with arguments: refname sha1-old sha1-new
-#
-# To enable this hook, rename this file to "update".
-#
-# Config
-# ------
-# hooks.allowunannotated
-#   This boolean sets whether unannotated tags will be allowed into the
-#   repository.  By default they won't be.
-# hooks.allowdeletetag
-#   This boolean sets whether deleting tags will be allowed in the
-#   repository.  By default they won't be.
-# hooks.allowmodifytag
-#   This boolean sets whether a tag may be modified after creation. By default
-#   it won't be.
-# hooks.allowdeletebranch
-#   This boolean sets whether deleting branches will be allowed in the
-#   repository.  By default they won't be.
-# hooks.denycreatebranch
-#   This boolean sets whether remotely creating branches will be denied
-#   in the repository.  By default this is allowed.
-#
-
-# --- Command line
-refname="$1"
-oldrev="$2"
-newrev="$3"
-
-# --- Safety check
-if [ -z "$GIT_DIR" ]; then
-	echo "Don't run this script from the command line." >&2
-	echo " (if you want, you could supply GIT_DIR then run" >&2
-	echo "  $0 <ref> <oldrev> <newrev>)" >&2
-	exit 1
-fi
-
-if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
-	echo "usage: $0 <ref> <oldrev> <newrev>" >&2
-	exit 1
-fi
-
-# --- Config
-allowunannotated=$(git config --type=bool hooks.allowunannotated)
-allowdeletebranch=$(git config --type=bool hooks.allowdeletebranch)
-denycreatebranch=$(git config --type=bool hooks.denycreatebranch)
-allowdeletetag=$(git config --type=bool hooks.allowdeletetag)
-allowmodifytag=$(git config --type=bool hooks.allowmodifytag)
-
-# check for no description
-projectdesc=$(sed -e '1q' "$GIT_DIR/description")
-case "$projectdesc" in
-"Unnamed repository"* | "")
-	echo "*** Project description file hasn't been set" >&2
-	exit 1
-	;;
-esac
-
-# --- Check types
-# if $newrev is 0000...0000, it's a commit to delete a ref.
-zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
-if [ "$newrev" = "$zero" ]; then
-	newrev_type=delete
-else
-	newrev_type=$(git cat-file -t $newrev)
-fi
-
-case "$refname","$newrev_type" in
-	refs/tags/*,commit)
-		# un-annotated tag
-		short_refname=${refname##refs/tags/}
-		if [ "$allowunannotated" != "true" ]; then
-			echo "*** The un-annotated tag, $short_refname, is not allowed in this repository" >&2
-			echo "*** Use 'git tag [ -a | -s ]' for tags you want to propagate." >&2
-			exit 1
-		fi
-		;;
-	refs/tags/*,delete)
-		# delete tag
-		if [ "$allowdeletetag" != "true" ]; then
-			echo "*** Deleting a tag is not allowed in this repository" >&2
-			exit 1
-		fi
-		;;
-	refs/tags/*,tag)
-		# annotated tag
-		if [ "$allowmodifytag" != "true" ] && git rev-parse $refname > /dev/null 2>&1
-		then
-			echo "*** Tag '$refname' already exists." >&2
-			echo "*** Modifying a tag is not allowed in this repository." >&2
-			exit 1
-		fi
-		;;
-	refs/heads/*,commit)
-		# branch
-		if [ "$oldrev" = "$zero" -a "$denycreatebranch" = "true" ]; then
-			echo "*** Creating a branch is not allowed in this repository" >&2
-			exit 1
-		fi
-		;;
-	refs/heads/*,delete)
-		# delete branch
-		if [ "$allowdeletebranch" != "true" ]; then
-			echo "*** Deleting a branch is not allowed in this repository" >&2
-			exit 1
-		fi
-		;;
-	refs/remotes/*,commit)
-		# tracking branch
-		;;
-	refs/remotes/*,delete)
-		# delete tracking branch
-		if [ "$allowdeletebranch" != "true" ]; then
-			echo "*** Deleting a tracking branch is not allowed in this repository" >&2
-			exit 1
-		fi
-		;;
-	*)
-		# Anything else (is there anything else?)
-		echo "*** Update hook: unknown type of update to ref $refname of type $newrev_type" >&2
-		exit 1
-		;;
-esac
-
-# --- Finished
-exit 0
-</file>
-
-<file path="templates/.git/info/exclude">
-# git ls-files --others --exclude-from=.git/info/exclude
-# Lines that start with '#' are comments.
-# For a project mostly in C, the following would be a good set of
-# exclude patterns (uncomment them if you want to use them):
-# *.[oa]
-# *~
-</file>
-
-<file path="templates/.git/logs/refs/heads/main">
-0000000000000000000000000000000000000000 84aaa7aee425e46a047099f9fc726b31b744fd5d Ricardo Oliveira <ricardooliveiralobe@gmail.com> 1784163628 -0300	commit (initial): Initial commit
-84aaa7aee425e46a047099f9fc726b31b744fd5d a399378b17861b1db00b8b29e379f5137472b765 Ricardo Oliveira <ricardooliveiralobe@gmail.com> 1784163669 -0300	commit: Add repomix-output.xml
-</file>
-
-<file path="templates/.git/logs/refs/remotes/origin/main">
-0000000000000000000000000000000000000000 84aaa7aee425e46a047099f9fc726b31b744fd5d Ricardo Oliveira <ricardooliveiralobe@gmail.com> 1784163643 -0300	update by push
-84aaa7aee425e46a047099f9fc726b31b744fd5d a399378b17861b1db00b8b29e379f5137472b765 Ricardo Oliveira <ricardooliveiralobe@gmail.com> 1784163672 -0300	update by push
-</file>
-
-<file path="templates/.git/logs/HEAD">
-0000000000000000000000000000000000000000 84aaa7aee425e46a047099f9fc726b31b744fd5d Ricardo Oliveira <ricardooliveiralobe@gmail.com> 1784163628 -0300	commit (initial): Initial commit
-84aaa7aee425e46a047099f9fc726b31b744fd5d a399378b17861b1db00b8b29e379f5137472b765 Ricardo Oliveira <ricardooliveiralobe@gmail.com> 1784163669 -0300	commit: Add repomix-output.xml
-</file>
-
-<file path="templates/.git/refs/heads/main">
-a399378b17861b1db00b8b29e379f5137472b765
-</file>
-
-<file path="templates/.git/refs/remotes/origin/main">
-a399378b17861b1db00b8b29e379f5137472b765
-</file>
-
-<file path="templates/.git/COMMIT_EDITMSG">
-Add repomix-output.xml
-</file>
-
-<file path="templates/.git/config">
-[core]
-	repositoryformatversion = 0
-	filemode = false
-	bare = false
-	logallrefupdates = true
-	symlinks = false
-	ignorecase = true
-[remote "origin"]
-	url = https://github.com/RicardoOliveiraLobe/Zelo-Imperio.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "main"]
-	remote = origin
-	merge = refs/heads/main
-</file>
-
-<file path="templates/.git/description">
-Unnamed repository; edit this file 'description' to name the repository.
-</file>
-
-<file path="templates/.git/HEAD">
-ref: refs/heads/main
+<file path="requirements.txt">
+Flask>=3.0
 </file>
 
 <file path="templates/index.html">
@@ -1093,11 +225,16 @@ ref: refs/heads/main
 <title>Zelo Império | Controle de Pragas Urbanas</title>
 <style>
   :root {
-    --verde-escuro: #0b3d2e;
-    --verde: #16794e;
-    --azul-escuro: #0d2a4a;
-    --cinza-claro: #f4f6f5;
-    --cinza: #6b7280;
+    --azul-escuro: #0F4C81;
+    --azul-royal: #0056B3;
+    --azul-medio: #1D70B8;
+    --azul-claro: #A3C9E8;
+    --azul-claro2: #85B3D1;
+    --preto: #1A1A1A;
+    --cinza-escuro: #555555;
+    --cinza-claro: #CCCCCC;
+    --fundo: #FDFBF7;
+    --secao-fundo: #EAF2FA;
     --branco: #ffffff;
   }
 
@@ -1109,8 +246,8 @@ ref: refs/heads/main
 
   body {
     font-family: "Segoe UI", Arial, Helvetica, sans-serif;
-    color: #1f2937;
-    background-color: var(--branco);
+    color: var(--preto);
+    background-color: var(--fundo);
     line-height: 1.6;
   }
 
@@ -1137,7 +274,7 @@ ref: refs/heads/main
   }
 
   header .logo span {
-    color: #4ade80;
+    color: var(--azul-claro);
   }
 
   header nav a {
@@ -1148,12 +285,12 @@ ref: refs/heads/main
   }
 
   header nav a:hover {
-    color: #4ade80;
+    color: var(--azul-claro);
   }
 
   /* ===== HERO ===== */
   .hero {
-    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--verde-escuro) 100%);
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul-royal) 100%);
     color: var(--branco);
     text-align: center;
     padding: 5rem 1.5rem;
@@ -1169,12 +306,12 @@ ref: refs/heads/main
     font-size: 1.15rem;
     max-width: 640px;
     margin: 0 auto 2rem auto;
-    color: #dbe7e1;
+    color: var(--azul-claro);
   }
 
   .btn-cta {
     display: inline-block;
-    background-color: var(--verde);
+    background-color: var(--azul-medio);
     color: var(--branco);
     padding: 0.9rem 2.2rem;
     border-radius: 6px;
@@ -1186,14 +323,14 @@ ref: refs/heads/main
   }
 
   .btn-cta:hover {
-    background-color: #12603d;
+    background-color: var(--azul-royal);
     transform: translateY(-2px);
   }
 
   /* ===== SERVIÇOS ===== */
   .servicos {
     padding: 4rem 1.5rem;
-    background-color: var(--cinza-claro);
+    background-color: var(--secao-fundo);
   }
 
   .servicos h2 {
@@ -1205,7 +342,7 @@ ref: refs/heads/main
 
   .servicos > p {
     text-align: center;
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     max-width: 600px;
     margin: 0 auto 3rem auto;
   }
@@ -1238,20 +375,20 @@ ref: refs/heads/main
   }
 
   .servico-card h3 {
-    color: var(--verde-escuro);
+    color: var(--azul-escuro);
     margin-bottom: 0.6rem;
     font-size: 1.2rem;
   }
 
   .servico-card p {
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     font-size: 0.95rem;
   }
 
   /* ===== ORÇAMENTO / FORMULÁRIO ===== */
   .orcamento {
     padding: 4rem 1.5rem;
-    background-color: var(--branco);
+    background-color: var(--fundo);
   }
 
   .orcamento h2 {
@@ -1263,7 +400,7 @@ ref: refs/heads/main
 
   .orcamento > p {
     text-align: center;
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     max-width: 600px;
     margin: 0 auto 2.5rem auto;
   }
@@ -1271,7 +408,7 @@ ref: refs/heads/main
   .form-container {
     max-width: 520px;
     margin: 0 auto;
-    background-color: var(--cinza-claro);
+    background-color: var(--secao-fundo);
     padding: 2.5rem;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -1305,7 +442,7 @@ ref: refs/heads/main
     display: block;
     margin-bottom: 0.4rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--preto);
     font-size: 0.92rem;
   }
 
@@ -1313,7 +450,7 @@ ref: refs/heads/main
   .form-group select {
     width: 100%;
     padding: 0.75rem 0.9rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--cinza-claro);
     border-radius: 6px;
     font-size: 0.95rem;
     background-color: var(--branco);
@@ -1322,7 +459,7 @@ ref: refs/heads/main
   .form-group input:focus,
   .form-group select:focus {
     outline: none;
-    border-color: var(--verde);
+    border-color: var(--azul-medio);
   }
 
   .form-container .btn-cta {
@@ -1333,7 +470,7 @@ ref: refs/heads/main
   /* ===== FOOTER ===== */
   footer {
     background-color: var(--azul-escuro);
-    color: #cbd5e1;
+    color: var(--azul-claro);
     text-align: center;
     padding: 2rem 1.5rem;
     font-size: 0.9rem;
@@ -1349,7 +486,7 @@ ref: refs/heads/main
   }
 
   footer .copyright {
-    color: #94a3b8;
+    color: var(--cinza-claro);
     margin-top: 0.5rem;
   }
 
@@ -1484,55 +621,6 @@ ref: refs/heads/main
 </html>
 </file>
 
-<file path=".gitignore">
-.venv/
-__pycache__/
-*.pyc
-</file>
-
-<file path="app.py">
-from flask import Flask, render_template, request, redirect, url_for, flash
-
-app = Flask(__name__)
-app.secret_key = "dev-secret-key-troque-em-producao"
-
-PRAGAS_VALIDAS = {"Baratas", "Formigas", "Ratos", "Cupins", "Escorpioes"}
-TIPOS_IMOVEL_VALIDOS = {"Residencial", "Comercial"}
-
-
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-
-@app.route("/orcamento", methods=["POST"])
-def orcamento():
-    nome = request.form.get("nome", "").strip()
-    whatsapp = request.form.get("whatsapp", "").strip()
-    tipo_imovel = request.form.get("tipo_imovel", "").strip()
-    praga_alvo = request.form.get("praga_alvo", "").strip()
-
-    if not nome or not whatsapp or tipo_imovel not in TIPOS_IMOVEL_VALIDOS or praga_alvo not in PRAGAS_VALIDAS:
-        flash("Por favor, preencha todos os campos corretamente.", "erro")
-        return redirect(url_for("home") + "#orcamento")
-
-    # Simulação de salvamento — aqui entraria a gravação em banco de dados
-    # ou envio para um CRM/planilha em uma versão futura.
-    print("=== NOVO PEDIDO DE ORÇAMENTO ===")
-    print(f"Nome: {nome}")
-    print(f"WhatsApp: {whatsapp}")
-    print(f"Tipo de Imóvel: {tipo_imovel}")
-    print(f"Praga Alvo: {praga_alvo}")
-    print("================================")
-
-    flash(f"Obrigado, {nome}! Recebemos sua solicitação e entraremos em contato em breve pelo WhatsApp.", "sucesso")
-    return redirect(url_for("home") + "#orcamento")
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
-</file>
-
 <file path="index.html">
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -1542,11 +630,16 @@ if __name__ == "__main__":
 <title>Zelo Império | Controle de Pragas Urbanas</title>
 <style>
   :root {
-    --verde-escuro: #0b3d2e;
-    --verde: #16794e;
-    --azul-escuro: #0d2a4a;
-    --cinza-claro: #f4f6f5;
-    --cinza: #6b7280;
+    --azul-escuro: #0F4C81;
+    --azul-royal: #0056B3;
+    --azul-medio: #1D70B8;
+    --azul-claro: #A3C9E8;
+    --azul-claro2: #85B3D1;
+    --preto: #1A1A1A;
+    --cinza-escuro: #555555;
+    --cinza-claro: #CCCCCC;
+    --fundo: #FDFBF7;
+    --secao-fundo: #EAF2FA;
     --branco: #ffffff;
   }
 
@@ -1558,8 +651,8 @@ if __name__ == "__main__":
 
   body {
     font-family: "Segoe UI", Arial, Helvetica, sans-serif;
-    color: #1f2937;
-    background-color: var(--branco);
+    color: var(--preto);
+    background-color: var(--fundo);
     line-height: 1.6;
   }
 
@@ -1586,7 +679,7 @@ if __name__ == "__main__":
   }
 
   header .logo span {
-    color: #4ade80;
+    color: var(--azul-claro);
   }
 
   header nav a {
@@ -1597,12 +690,12 @@ if __name__ == "__main__":
   }
 
   header nav a:hover {
-    color: #4ade80;
+    color: var(--azul-claro);
   }
 
   /* ===== HERO ===== */
   .hero {
-    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--verde-escuro) 100%);
+    background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul-royal) 100%);
     color: var(--branco);
     text-align: center;
     padding: 5rem 1.5rem;
@@ -1618,12 +711,12 @@ if __name__ == "__main__":
     font-size: 1.15rem;
     max-width: 640px;
     margin: 0 auto 2rem auto;
-    color: #dbe7e1;
+    color: var(--azul-claro);
   }
 
   .btn-cta {
     display: inline-block;
-    background-color: var(--verde);
+    background-color: var(--azul-medio);
     color: var(--branco);
     padding: 0.9rem 2.2rem;
     border-radius: 6px;
@@ -1635,14 +728,14 @@ if __name__ == "__main__":
   }
 
   .btn-cta:hover {
-    background-color: #12603d;
+    background-color: var(--azul-royal);
     transform: translateY(-2px);
   }
 
   /* ===== SERVIÇOS ===== */
   .servicos {
     padding: 4rem 1.5rem;
-    background-color: var(--cinza-claro);
+    background-color: var(--secao-fundo);
   }
 
   .servicos h2 {
@@ -1654,7 +747,7 @@ if __name__ == "__main__":
 
   .servicos > p {
     text-align: center;
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     max-width: 600px;
     margin: 0 auto 3rem auto;
   }
@@ -1687,20 +780,20 @@ if __name__ == "__main__":
   }
 
   .servico-card h3 {
-    color: var(--verde-escuro);
+    color: var(--azul-escuro);
     margin-bottom: 0.6rem;
     font-size: 1.2rem;
   }
 
   .servico-card p {
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     font-size: 0.95rem;
   }
 
   /* ===== ORÇAMENTO / FORMULÁRIO ===== */
   .orcamento {
     padding: 4rem 1.5rem;
-    background-color: var(--branco);
+    background-color: var(--fundo);
   }
 
   .orcamento h2 {
@@ -1712,7 +805,7 @@ if __name__ == "__main__":
 
   .orcamento > p {
     text-align: center;
-    color: var(--cinza);
+    color: var(--cinza-escuro);
     max-width: 600px;
     margin: 0 auto 2.5rem auto;
   }
@@ -1720,7 +813,7 @@ if __name__ == "__main__":
   .form-container {
     max-width: 520px;
     margin: 0 auto;
-    background-color: var(--cinza-claro);
+    background-color: var(--secao-fundo);
     padding: 2.5rem;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -1759,7 +852,7 @@ if __name__ == "__main__":
     display: block;
     margin-bottom: 0.4rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--preto);
     font-size: 0.92rem;
   }
 
@@ -1767,7 +860,7 @@ if __name__ == "__main__":
   .form-group select {
     width: 100%;
     padding: 0.75rem 0.9rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--cinza-claro);
     border-radius: 6px;
     font-size: 0.95rem;
     background-color: var(--branco);
@@ -1776,7 +869,7 @@ if __name__ == "__main__":
   .form-group input:focus,
   .form-group select:focus {
     outline: none;
-    border-color: var(--verde);
+    border-color: var(--azul-medio);
   }
 
   .form-container .btn-cta {
@@ -1787,7 +880,7 @@ if __name__ == "__main__":
   /* ===== FOOTER ===== */
   footer {
     background-color: var(--azul-escuro);
-    color: #cbd5e1;
+    color: var(--azul-claro);
     text-align: center;
     padding: 2rem 1.5rem;
     font-size: 0.9rem;
@@ -1803,7 +896,7 @@ if __name__ == "__main__":
   }
 
   footer .copyright {
-    color: #94a3b8;
+    color: var(--cinza-claro);
     margin-top: 0.5rem;
   }
 
@@ -1969,120 +1062,6 @@ if __name__ == "__main__":
 
 </body>
 </html>
-</file>
-
-<file path="proposta_comercial_pme_controle_pragas.md">
-# PROPOSTA COMERCIAL
-## Controle Integrado de Pragas Urbanas — Contrato de Manutenção Preventiva
-
----
-
-**[LOGO DA EMPRESA]**
-
-**[NOME DA EMPRESA]**
-CNPJ: [00.000.000/0000-00] | Licença de Funcionamento: [nº] | Registro no órgão sanitário: [nº]
-[Endereço completo] | [Telefone] | [E-mail] | [Site/Instagram]
-
----
-
-**Proposta nº:** [000/2026]
-**Data:** [DD/MM/AAAA]
-**Validade da proposta:** 10 dias corridos
-
-**Cliente:** [Razão Social do Cliente]
-**CNPJ:** [00.000.000/0000-00]
-**Segmento:** [Restaurante / Indústria / Condomínio / Clínica / Comércio varejista / Outro]
-**Endereço do imóvel a ser atendido:** [Endereço completo]
-**Contato responsável:** [Nome, cargo, telefone, e-mail]
-
----
-
-## 1. Apresentação
-
-A **[Nome da Empresa]** é especializada em Manejo Integrado de Pragas (MIP) urbanas, atuando em conformidade com a **RDC nº 52/2009 da ANVISA**, que regulamenta as empresas prestadoras de serviço de controle de vetores e pragas urbanas. Nossa equipe é tecnicamente capacitada e utiliza exclusivamente produtos com registro no Ministério da Saúde/ANVISA, aplicados por técnicos treinados e com Anotação de Responsabilidade Técnica (ART/RT) vigente.
-
-Diferente de uma simples "dedetização pontual", nosso trabalho segue a lógica do **Manejo Integrado de Pragas**: identificamos a espécie, mapeamos os pontos críticos de infestação (fontes de água, alimento, abrigo e acesso), e combinamos métodos químicos, físicos e comportamentais para reduzir a pressão de pragas de forma sustentável — não apenas eliminar o sintoma visível.
-
-## 2. Diagnóstico e Escopo do Serviço
-
-Com base na vistoria técnica realizada em [data da vistoria], identificamos os seguintes pontos de atenção no imóvel:
-
-| Praga-alvo identificada/prevenida | Nível de risco | Método de controle indicado |
-|---|---|---|
-| Baratas (Blattodea) | [Baixo/Médio/Alto] | Gel iscas + polvilhamento em frestas |
-| Roedores (ratos/camundongos) | [Baixo/Médio/Alto] | Estações porta-iscas + bloqueio de acesso |
-| Formigas urbanas | [Baixo/Médio/Alto] | Iscas granuladas/gel + identificação de trilhas |
-| Cupins (subterrâneos/madeira seca) | [Baixo/Médio/Alto] | Barreira química/física + monitoramento |
-| Escorpiões | [Baixo/Médio/Alto] | Vedação de frestas + controle de baratas (presa) |
-| Mosquitos (Aedes e outros) | [Baixo/Médio/Alto] | Eliminação de criadouros + nebulização (UBV) |
-| Pombos e outras aves urbanas | [Baixo/Médio/Alto] | Instalação de dispositivos de afugentamento |
-| Percevejos de cama | [Baixo/Médio/Alto] | Tratamento térmico/químico direcionado |
-
-*Ajustar a tabela conforme o levantamento real de cada cliente — remover linhas não aplicáveis.*
-
-## 3. Plano de Manutenção Proposto — Visitas Periódicas Fixas
-
-| Item | Descrição |
-|---|---|
-| **Frequência das visitas** | [Mensal / Bimestral / Trimestral] |
-| **Duração média por visita** | [X] horas |
-| **Escopo por visita** | Inspeção técnica + reaplicação/reposição de iscas e monitoramento + relatório técnico |
-| **Áreas cobertas** | [Áreas internas, áreas externas, área técnica/cozinha industrial, depósito, etc.] |
-| **Atendimento corretivo emergencial** | [Incluído sem custo adicional / Sob consulta, com prazo de resposta de até X horas] |
-| **Relatório técnico pós-visita** | Emitido a cada atendimento, com registro fotográfico, produtos utilizados e recomendações |
-| **Certificado de Dedetização/Desratização** | Emitido conforme exigência de vigilância sanitária, válido para fiscalizações |
-
-## 4. Segurança e Conformidade
-
-Todos os produtos utilizados possuem **registro no Ministério da Saúde/ANVISA** para uso em ambiente urbano, aplicados conforme a bula e o receituário técnico. Como parte do protocolo de segurança, orientamos e formalizamos por escrito:
-
-- **Afastamento de pessoas, animais domésticos e alimentos** da área tratada durante a aplicação;
-- **Tempo de reentrada** recomendado após cada aplicação: [X horas], conforme classe toxicológica do produto utilizado;
-- Uso de **Equipamentos de Proteção Individual (EPI)** completos pela equipe técnica;
-- Sinalização temporária da área tratada durante e após o serviço;
-- Ficha de Informação de Segurança de Produto Químico (FISPQ) disponível mediante solicitação.
-
-## 5. Investimento
-
-| Item | Valor |
-|---|---|
-| Visita técnica inicial (diagnóstico + primeira aplicação) | R$ [valor] |
-| Mensalidade — plano de manutenção ([frequência]) | R$ [valor]/mês |
-| Fidelidade do contrato | [X meses] |
-| Forma de pagamento | [Boleto / PIX / Cartão — vencimento todo dia X] |
-| Reajuste anual | [Índice — ex: IPCA, na data de aniversário do contrato] |
-
-*Observação: valor pode variar conforme metragem, tipo de segmento e nível de infestação identificado na vistoria.*
-
-## 6. Por que manter um contrato recorrente (e não um serviço avulso)
-
-Um serviço avulso resolve o problema visível no momento — mas pragas urbanas têm ciclos reprodutivos contínuos (uma fêmea de barata, por exemplo, pode gerar centenas de descendentes em poucos meses). O contrato de manutenção garante:
-
-- **Monitoramento contínuo** dos pontos críticos, interrompendo o ciclo reprodutivo antes que a infestação se reestabeleça;
-- **Conformidade permanente** com a vigilância sanitária, essencial para renovação de alvará e para inspeções de clientes/fornecedores (no caso de indústrias e restaurantes);
-- **Redução de custo no longo prazo**, evitando reinfestações que exigiriam tratamentos corretivos mais caros e invasivos;
-- **Registro histórico documentado**, útil em auditorias, certificações (ISO, HACCP) e devidas diligências.
-
-## 7. Validade e Aceite
-
-Esta proposta é válida por **10 dias corridos** a partir da data de emissão. O início dos serviços está condicionado à assinatura do contrato de prestação de serviços em anexo e ao agendamento da primeira visita técnica.
-
-Ficamos à disposição para esclarecer dúvidas técnicas ou comerciais.
-
-**[Nome do responsável comercial]**
-[Cargo] — [Nome da Empresa]
-[Telefone] | [E-mail]
-
-De acordo,
-
-_____________________________________
-[Nome do Cliente / Responsável Legal]
-[Cargo] — [Razão Social]
-Data: ____/____/______
-</file>
-
-<file path="requirements.txt">
-Flask>=3.0
 </file>
 
 <file path="instrucions.md">
