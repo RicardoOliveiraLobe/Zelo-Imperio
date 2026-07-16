@@ -3,7 +3,11 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-troque-em-producao"
 
-PRAGAS_VALIDAS = {"Baratas", "Formigas", "Ratos", "Cupins", "Escorpioes"}
+PRAGAS_VALIDAS = {
+    "Baratas", "Cupins", "Moscas", "Mosquitos", "Formigas",
+    "Carrapatos", "Aranhas", "Ratos", "Lesmas", "Escorpioes",
+    "Tracas", "Brocas", "Taturanas", "Pulgas", "Morcegos",
+}
 TIPOS_IMOVEL_VALIDOS = {"Residencial", "Comercial"}
 
 

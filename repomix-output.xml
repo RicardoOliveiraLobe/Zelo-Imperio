@@ -65,7 +65,11 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-troque-em-producao"
 
-PRAGAS_VALIDAS = {"Baratas", "Formigas", "Ratos", "Cupins", "Escorpioes"}
+PRAGAS_VALIDAS = {
+    "Baratas", "Cupins", "Moscas", "Mosquitos", "Formigas",
+    "Carrapatos", "Aranhas", "Ratos", "Lesmas", "Escorpioes",
+    "Tracas", "Brocas", "Taturanas", "Pulgas", "Morcegos",
+}
 TIPOS_IMOVEL_VALIDOS = {"Residencial", "Comercial"}
 
 
@@ -594,10 +598,20 @@ Flask>=3.0
           <select id="praga_alvo" name="praga_alvo" required>
             <option value="" disabled selected>Selecione</option>
             <option value="Baratas">Baratas</option>
-            <option value="Formigas">Formigas</option>
-            <option value="Ratos">Ratos</option>
             <option value="Cupins">Cupins</option>
+            <option value="Moscas">Moscas</option>
+            <option value="Mosquitos">Mosquitos</option>
+            <option value="Formigas">Formigas</option>
+            <option value="Carrapatos">Carrapatos</option>
+            <option value="Aranhas">Aranhas</option>
+            <option value="Ratos">Ratos</option>
+            <option value="Lesmas">Lesmas</option>
             <option value="Escorpioes">Escorpiões</option>
+            <option value="Tracas">Traças</option>
+            <option value="Brocas">Brocas</option>
+            <option value="Taturanas">Taturanas</option>
+            <option value="Pulgas">Pulgas</option>
+            <option value="Morcegos">Morcegos</option>
           </select>
         </div>
 
@@ -998,10 +1012,20 @@ Flask>=3.0
           <select id="praga_alvo" name="praga_alvo" required>
             <option value="" disabled selected>Selecione</option>
             <option value="Baratas">Baratas</option>
-            <option value="Formigas">Formigas</option>
-            <option value="Ratos">Ratos</option>
             <option value="Cupins">Cupins</option>
+            <option value="Moscas">Moscas</option>
+            <option value="Mosquitos">Mosquitos</option>
+            <option value="Formigas">Formigas</option>
+            <option value="Carrapatos">Carrapatos</option>
+            <option value="Aranhas">Aranhas</option>
+            <option value="Ratos">Ratos</option>
+            <option value="Lesmas">Lesmas</option>
             <option value="Escorpioes">Escorpiões</option>
+            <option value="Tracas">Traças</option>
+            <option value="Brocas">Brocas</option>
+            <option value="Taturanas">Taturanas</option>
+            <option value="Pulgas">Pulgas</option>
+            <option value="Morcegos">Morcegos</option>
           </select>
         </div>
 
